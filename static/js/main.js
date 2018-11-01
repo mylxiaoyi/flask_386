@@ -124,6 +124,10 @@
         if (!confirm("Are you sure to delete?"))
                 return false;
 	});
+
+    $.datetimepicker.setLocale('en');
+    $("#starttime").datetimepicker();
+    $("#endtime").datetimepicker();
  
 })(jQuery); 
 

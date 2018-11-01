@@ -3,6 +3,7 @@ from werkzeug.utils import secure_filename
 import sqlite3
 import os
 import math
+import json
 
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
@@ -194,9 +195,89 @@ def delete_course_by_id(course_id):
 def events_list():
     return render_template('event/list.html', menu_flag = 'event')
 
+@app.route('/events_json')
+def events_json():
+    start = request.args.get('start')
+    end = request.args.get('end')
+    data = get_events_between_start_and_end(start, end)
+    events = []
+    for d in data:
+        events.append({'id':d[0], 'title':d[1], 'start':d[2], 'end':d[3]})
+    return json.dumps(events)
+
+@app.route('/events_update_json', methods=['POST'])
+def events_update_json():
+    if request.method == 'POST':
+        data = {}
+        data['event_id'] = request.form['id']
+        data['event_title'] = request.form['title']
+        data['event_starttime'] = request.form['start']
+        data['event_endtime'] = request.form['end']
+        do_events_update(data)
+        return 'success'
+
 @app.route('/events/add')
 def events_add():
-    return render_template('events/add.html', menu_flag = 'event')
+    return render_template('event/add.html', menu_flag = 'event')
+
+@app.route('/events/save', methods=['POST'])
+def events_save():
+    if request.method == 'POST':
+        data = {}
+        data['event_id'] = None
+        try:
+            data['event_id'] = request.form['eventid']
+        except KeyError:
+            pass
+        data['event_title'] = request.form['eventtitle']
+        data['event_starttime'] = request.form['starttime']
+        data['event_endtime'] = request.form['endtime']
+
+        if data['event_id'] is None:
+            do_events_save(data)
+        else:
+            do_events_update(data)
+
+        return redirect(url_for('events_list'))
+
+@app.route('/events/update/<int:event_id>')
+def events_update(event_id):
+    data = get_event_by_id(event_id)
+    return render_template('event/edit.html', event = data, menu_flag = 'event')
+
+def do_events_save(data):
+    db = sqlite3.connect('hello.db')
+    cur = db.cursor()
+    sql = 'insert into events(title, starttime, endtime) values("{}", "{}", "{}")'.format(data['event_title'], data['event_starttime'], data['event_endtime'])
+    cur.execute(sql)
+    db.commit()
+    db.close()
+
+def do_events_update(data):
+    db = sqlite3.connect('hello.db')
+    cur = db.cursor()
+    sql = 'update events set title="{}", starttime="{}", endtime="{}" where id={}'.format(data['event_title'], data['event_starttime'], data['event_endtime'], data['event_id'])
+    cur.execute(sql)
+    db.commit()
+    db.close()
+
+def get_events_between_start_and_end(start, end):
+    db = sqlite3.connect('hello.db')
+    cur = db.cursor()
+    sql = 'select * from events where starttime >= "{}" and endtime <= "{}"'.format(start, end)
+    cur.execute(sql)
+    data = cur.fetchall()
+    db.close()
+    return data
+
+def get_event_by_id(event_id):
+    db = sqlite3.connect('hello.db')
+    cur = db.cursor()
+    sql = 'select * from events where id={}'.format(event_id)
+    cur.execute(sql)
+    data = cur.fetchall()
+    db.close()
+    return data[0]
 
 if __name__ == '__main__':
     app.run(debug=True)

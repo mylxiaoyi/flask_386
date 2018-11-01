@@ -313,6 +313,44 @@
 		});
 		
 		
+		$(".addevent").validate(
+		{					
+			rules:
+			{	
+				eventtitle:
+				{
+					required: true
+				},
+				starttime:
+				{
+					required: true
+				},
+				endtime:
+				{
+					required: true
+				},
+			},
+			messages:
+			{	
+				eventtitle:
+				{
+					required: 'Please enter event title'
+				},
+				starttime:
+				{
+					required: 'Please select start time'
+				},
+				endtime:
+				{
+					required: 'Please select end time'
+				},
+			},					
+			
+			errorPlacement: function(error, element)
+			{
+				error.insertAfter(element.parent());
+			}
+		});
 		
 		
  

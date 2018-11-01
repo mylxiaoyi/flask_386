@@ -15,5 +15,58 @@ $(function() {
         navLinks: true, // can click day/week names to navigate views
         editable: true,
         eventLimit: true, // allow "more" link when too many events
+        eventSources: [
+            {
+                url: '/events_json'
+            }
+        ],
+        /*eventRender: function(event, $element) {
+            $element.popover({
+                title: 'Event',
+                content: event.title,
+                trigger: 'hover',
+                placement: 'top',
+                container: 'body'
+            });
+        },*/
+        eventClick: function(event, jsEvent, view) {
+            window.location.href="/events/update/"+event.id;
+        },
+        eventDrop: function(event, delta, revertFunc) {
+            if (!confirm("Are you sure about this changes?")) {
+                revertFunc();
+            }
+            else {
+                $.post('/events_update_json',
+                    {
+                        'id': event.id,
+                        'title': event.title,
+                        'start': event.start.format(),
+                        'end': event.end.format()
+                    }
+                ).fail(function() {
+                    alert('update failed');
+                    revertFunc();
+                });
+            }
+        },
+        eventResize: function(event, delta, revertFunc) {
+            if (!confirm("is this okay?")) {
+                revertFunc();
+            }
+            else {
+                $.post('/events_update_json',
+                    {
+                        'id': event.id,
+                        'title': event.title,
+                        'start': event.start.format(),
+                        'end': event.end.format()
+                    }
+                ).fail(function() {
+                    alert('update failed');
+                    revertFunc();
+                });
+            }
+        }
 	});
 });
