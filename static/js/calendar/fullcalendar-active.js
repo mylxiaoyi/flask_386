@@ -8,7 +8,7 @@ $(function() {
 
 	$('#calendar').fullCalendar({
 		header: {
-			left: 'prev,next today',
+			left: 'prevYear,prev,next,nextYear today',
 			center: 'title',
 			right: 'month,agendaWeek,agendaDay,listWeek'
 		},
